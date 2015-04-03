@@ -1,0 +1,303 @@
+<?xml version="1.0"?>
+<!DOCTYPE rfc SYSTEM "rfc2629.dtd">
+<?rfc comments="yes"?>
+<?rfc compact="yes"?>
+<?rfc inline="yes"?>
+<?rfc sortrefs="yes"?>
+<?rfc subcompact="no"?>
+<?rfc symrefs="yes"?>
+<?rfc toc="yes"?>
+<?rfc tocdepth="3"?>
+<?rfc tocindent="yes"?>
+<?rfc tocompact="yes"?>
+<rfc category="std" docName="draft-bowers-spring-adv-per-algorithm-label-blocks-00" ipr="trust200902" obsoletes="" updates="" submissionType="IETF" xml:lang="en">
+  <front>
+    <title abbrev="Advertising Per-Algorithm Label Blocks">
+      Advertising Per-Algorithm Label Blocks
+    </title>
+
+    <author fullname="Chris Bowers" initials="C." surname="Bowers">
+      <organization>Juniper Networks</organization>
+      <address>
+        <postal>
+          <street>1194 N. Mathilda Ave.</street>
+          <city>Sunnyvale</city>
+          <region>CA</region>
+          <code>94089</code>
+          <country>US</country>
+        </postal>
+        <email>cbowers@juniper.net</email>
+      </address>
+    </author>
+
+    <author initials="P." surname="Sarkar" fullname="Pushpasis Sarkar">
+      <organization>Juniper Networks</organization>
+      <address>
+	<postal>
+	  <street>Embassy Business Park</street>
+	  <city>Bangalore</city>
+	  <region>KA</region>
+	  <code>560093</code>
+	  <country>India</country>
+	</postal>
+	<email>psarkar@juniper.net</email>
+      </address>
+    </author>
+
+    <author fullname="Hannes Gredler" initials="H." surname="Gredler">
+      <organization>Juniper Networks</organization>
+      <address>
+        <postal>
+          <street>1194 N. Mathilda Ave.</street>
+          <city>Sunnyvale</city>
+          <region>CA</region>
+          <code>94089</code>
+          <country>US</country>
+        </postal>
+        <email>hannes@juniper.net</email>
+      </address>
+    </author>
+    
+    <date day="3" month="April" year="2015"/>
+    
+    <area>Routing</area>
+
+    <workgroup>SPRING Working Group</workgroup>
+
+    <abstract>
+      <t> Segment routing uses globally-known labels to accomplish
+      destination-based forwarding along shortest paths computed using
+      Dijkstra's algorithm with IGP metrics.  This draft discusses how
+      to use segment routing to accomplish destination-based
+      forwarding along paths computed using other algorithms and
+      metrics.  In particular, the draft contrasts two different
+      options for associating labels with different algorithms for
+      computing forwarding next-hops.
+      </t>
+    </abstract>
+    
+  </front>
+
+  <middle>
+    <section title="Introduction">
+      <t> <xref target="I-D.ietf-spring-segment-routing"/> describes
+      the segment routing architecture.  In segment routing, LDP-like
+      forwarding behavior along shortest paths is achieved using
+      globally-known node labels.  Globally-known node labels can be
+      distributed in one of two ways.  Each router can directly
+      advertise a globally unique node label in the IGP.  Or each
+      router can advertise a globally unique node index value as well
+      as a locally assigned label block, allowing any router in the
+      IGP area to determine the mapping of locally-assigned label to
+      globally unique node index for any other router in the area.
+      </t>
+
+      <t> This draft focuses on the case where the combination of
+      global node index and local label block is used to distribute
+      locally-significant labels.  <xref
+      target="fig_spf_label_formula"/> shows the formula used to
+      determine the locally-significant label values corresponding to
+      shortest path forwarding next-hops computed using Dijkstra's
+      shortest path first algorithm with IGP metrics, which is the
+      default mode of operation for segment routing.
+      </t>
+      
+<figure anchor="fig_spf_label_formula" title="Formula for determining locally-significant shortest path labels" align="center">
+<artwork align="center"><![CDATA[      
+SPF_Label(X,D) = Label_Block(X) + Node_Index(D) 
+
+X is the node for which the label has local significance 
+D is the destination node 
+
+]]></artwork>
+</figure>
+
+      <t> As a simple example, when the computing node (Y) needs to
+      forward a packet ultimately destined for node D, Y first
+      determines the shortest path next-hop node to reach D, which we
+      assume to be X in this example.  Y then adds the Node_Index
+      value advertised by D to the Label_Block value advertised by X
+      to determine the label value to apply to the packet before
+      sending it to X.
+      </t>
+
+    </section>
+
+    <section title="Destination-based forwarding in segment routing using other algorithms">      
+
+      <t> <xref target="fig_generalized_label_formula"/> shows two
+      options for generalizing the above formula, to determine
+      locally-significant labels corresponding to forwarding next-hops
+      computed using other algorithms.
+      </t>
+
+<figure anchor="fig_generalized_label_formula" title="Two options for determining locally-significant labels for other algorithms" align="center">
+<artwork align="center"><![CDATA[
+
+    Option 1: per-algorithm node index
+    Label(X,D,A) = Label_Block(X) + Node_Index(D,A)
+
+    Option 2: per-algorithm label block 
+    Label(X,D,A) = Label_Block(X,A) + Node_Index(D)      
+
+X is the node for which the label has local significance 
+D is the destination node 
+A is the algorithm for computing destination-based 
+  forwarding next-hops 
+
+]]></artwork>
+</figure>
+
+      <t> The computing router (Y) needs to forward a packet destined
+      for node D using next-hops computed by algorithm A.  Using
+      either option, Y determines the next-hop computed by algorithm A
+      to reach D, which we assume to be X in this example.  Y then
+      needs to figure out the correct label to apply to the packet so
+      that X will also understand that the packet is destined for node
+      D using forwarding next-hops computed by algorithm A.  The two
+      options shown in <xref target="fig_generalized_label_formula"/>
+      differ in how Y determines that label value.
+      </t>
+
+      <t>In Option 1 each node advertises a unique node index for each
+      algorithm and a single label block.  Y determines the label
+      value of local significance to X to reach D using algorithm A by
+      adding the Node_Index advertised by node D for algorithm A to
+      the Label_Block advertised by node X.  We refer to this as the
+      per-algorithm node index option.
+      </t>
+
+      <t>In Option 2 each node advertises a single node index and a
+      unique label block for each algorithm.  Y determines the label
+      value of local significance to X to reach D using algorithm A by
+      adding the Node_Index advertised by node D to the Label_Block
+      for algorithm A advertised by node X.  We refer to this as the
+      per-algorithm label block option.
+      </t>
+
+      <t> The extensions currently defined in <xref
+      target="I-D.ietf-isis-segment-routing-extensions"/> and <xref
+      target="I-D.ietf-ospf-segment-routing-extensions"/> specify
+      encodings for Option 1, the per-algorithm node index option.
+      However, as illustrated in the following section, Option 2 has
+      significant advantages over Option 1.
+      </t>
+    </section>
+    
+    <section title="Practical implications of using the per-algorithm node index option">
+      <t> The following example illustrates the practical difficulties
+      associated with using the per-algorithm node index option to
+      support other forwarding algorithms.
+      </t>
+
+      <t> Suppose an operator has a network with 100 nodes, which we
+      will refer to as R0-R99.  The operator assigns the unique node
+      index values 0-99 to those nodes for algorithm=0, in order to
+      accomplish shortest path routing based on IGP metrics with SR
+      labels.  Each node will need to advertise a label block of
+      size=100.
+      </t>
+
+      <t> Assume that at some future point in time, the IETF defines
+      algorithm=1 to mean shortest path routing based on latency, and
+      vendors implement this.  Suppose that the operator wants to use
+      latency-based SPF routes for some traffic and metric-based SPF
+      routes for other traffic.  The operator will need to define a
+      new set of unique node index values for algorithm=1.  A
+      reasonable choice would be to assign Node-SID values of 100-199
+      to R0-R99 for algorithm=1.  Each node will now need to advertise
+      a label block of size=200.  So far the need for per-algorithm
+      node index values is an annoyance, but not too difficult to deal
+      with.
+      </t>
+
+      <t>Now assume that the operator needs to add 10 new nodes to the
+      SR domain, specifically nodes R100-R109.  Each node will now
+      need to advertise a label block of size=220.  The main issue is
+      deciding how to assign per-algorithm node index for the 10 new
+      nodes?  One option is to redo the node index numbering scheme so
+      that R0-R109 have node index values 0-109 for algorithm=0 and
+      node index values 110-229 for algorithm=1.  However, this
+      requires renumbering existing nodes.  The other option is to
+      avoid renumbering of nodes by assigning nodes R100-R109 node
+      index values 200-209 for algorithm=0 and node index values
+      210-219 for algorithm=1. Each of these approaches has drawbacks.
+      The first requires renumbering existing nodes, while the second
+      is difficult to maintain since there is no obvious relationship
+      between the node index values for different algorithms.
+      </t>
+
+      <t>There are other numbering schemes for per-algorithm node
+      index value that one can consider.  However, they run into
+      similar problems as described in the example above when trying
+      to add more nodes or more algorithms.  One could also try to
+      mitigate these problems by anticipating growth in each dimension
+      and pre-assigning node index values based on anticipated maximum
+      values in each dimension.  However, this can result in needing
+      to advertise label blocks that are potentially much larger than
+      actually needed.
+      </t>
+
+    </section>
+
+    <section title="Advantages of using the per-algorithm label block option">
+      <t>The use of per-algorithm label blocks avoids the problems
+      associated with assigning and maintaining unique node index
+      values for each forwarding algorithm.
+      </t>
+
+      <t>When the SR domain is initially deployed, R0-R99 can be
+      assigned node index values 0-99, as one would expect.  When
+      support for algorithm=1 gets added, the operator does not need
+      to assign and configure any new node index values.  Instead, the
+      routers automate the process by advertising different label
+      blocks for each forwarding algorithm.
+      </t>
+
+      <t>When another 10 nodes are added to the SR domain, R100-R109
+      get assigned node index values 100-109 as one would expect.  And
+      the router advertises a label block of size=110 for each
+      algorithm, as one would expect.  Adding new nodes in the
+      presence of multiple forwarding algorithms is simplified
+      significantly with the use of per-algorithm label blocks.
+      </t>
+
+    </section>
+
+      
+    <section anchor="IANA" title="IANA Considerations">
+      <t>This document introduces no new IANA Considerations.
+      </t>
+    </section>
+    
+    <section title="Management Considerations">
+      <t>This document proposes the use of per-algorithm label blocks
+      to support destination-based forwarding along next-hops computed
+      using different algorithms.  The automated advertisement of
+      per-algorithm label blocks significantly simplifes network
+      managment compared to configuration and maintenance of unique
+      per-algorithm node indexes.
+      </t>
+    </section>
+
+    <section title="Security Considerations">
+      <t> TBD
+      </t>
+    </section>
+
+    <section anchor="Acknowledgements" title="Acknowledgements" toc="default">
+      <t> TBD
+      </t>
+    </section>
+
+</middle>
+
+  <back>
+  
+    <references title="Informative References">
+      <?rfc include="http://xml.resource.org/public/rfc/bibxml3/reference.I-D.draft-ietf-spring-segment-routing-01.xml"?>
+      <?rfc include="http://xml.resource.org/public/rfc/bibxml3/reference.I-D.draft-ietf-isis-segment-routing-extensions-03.xml"?>
+      <?rfc include="http://xml.resource.org/public/rfc/bibxml3/reference.I-D.draft-ietf-ospf-segment-routing-extensions-04.xml"?>
+    </references>
+  </back>
+</rfc>
