@@ -10,7 +10,7 @@
 <?rfc tocdepth="3"?>
 <?rfc tocindent="yes"?>
 <?rfc tocompact="yes"?>
-<rfc category="std" docName="draft-bowers-spring-adv-per-algorithm-label-blocks-00" ipr="trust200902" obsoletes="" updates="" submissionType="IETF" xml:lang="en">
+<rfc category="std" docName="draft-bowers-spring-adv-per-algorithm-label-blocks-01" ipr="trust200902" obsoletes="" updates="" submissionType="IETF" xml:lang="en">
   <front>
     <title abbrev="Advertising Per-Algorithm Label Blocks">
       Advertising Per-Algorithm Label Blocks
@@ -58,7 +58,7 @@
       </address>
     </author>
     
-    <date day="3" month="April" year="2015"/>
+    <date day="24" month="June" year="2015"/>
     
     <area>Routing</area>
 
@@ -204,7 +204,7 @@ A is the algorithm for computing destination-based
       latency-based SPF routes for some traffic and metric-based SPF
       routes for other traffic.  The operator will need to define a
       new set of unique node index values for algorithm=1.  A
-      reasonable choice would be to assign Node-SID values of 100-199
+      reasonable choice would be to assign node index values of 100-199
       to R0-R99 for algorithm=1.  Each node will now need to advertise
       a label block of size=200.  So far the need for per-algorithm
       node index values is an annoyance, but not too difficult to deal
@@ -264,7 +264,52 @@ A is the algorithm for computing destination-based
 
     </section>
 
-      
+    <section title="ISIS extensions to encode per-algorithm label blocks">
+      <t>Below is a concrete proposal for encoding per-algorithm label
+      blocks in ISIS compatible with the encodings in <xref
+      target="I-D.ietf-isis-segment-routing-extensions"/>.
+      </t>
+
+      <t> The newly-defined Algorithm-Label-Block sub-TLV is shown in
+      <xref target="fig_algo_label_block_sub_tlv"/>.  It is carried in
+      the IS-IS Router Capability TLV-242.  It contains a 8-bit
+      Algorithm field which associates the SRGB Descriptor entries
+      carried in the sub-TLV with an algorithm for computing
+      destination-based next-hops. Otherwise, the structure and
+      interpretation of the Algorithm-Label-Block sub-TLV is identical
+      to that of the SR-Capabilities sub-TLV defined in section 3.1 of <xref
+      target="I-D.ietf-isis-segment-routing-extensions"/>.  
+      </t>
+
+<figure anchor="fig_algo_label_block_sub_tlv" title="Algorithm-Label-Block sub-TLV" align="center">
+<artwork align="left">
+<![CDATA[
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |   Type        |     Length    |   Algorithm   |      Flags    |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |        One or more SRGB Descriptor entries (variable)         |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+]]></artwork>
+</figure>
+
+      <t> The Algorithm-Label-Block sub-TLV MUST NOT be advertised
+      with Algorithm value=0.  In this way, the concatenated label
+      block used to compute the label values for algorithm=0 can only
+      be carried by the SR Capabilities sub-TLV.  When the
+      Algorithm-Label-Block sub-TLV is present with a given non-zero
+      algorithm value, routers MUST determine the label values
+      associated with that algorithm using the per-algorithm label
+      block method and the concatenated label block carried by the
+      Algorithm-Label-Block sub-TLV.  The node indices used in this
+      calculation are those carried in Node-SID advertisements with
+      algorithm value=0.
+      </t>
+
+    </section>
+
     <section anchor="IANA" title="IANA Considerations">
       <t>This document introduces no new IANA Considerations.
       </t>
@@ -286,7 +331,7 @@ A is the algorithm for computing destination-based
     </section>
 
     <section anchor="Acknowledgements" title="Acknowledgements" toc="default">
-      <t> TBD
+      <t> The authors thank John Scudder for his review of this document and his suggestions.
       </t>
     </section>
 
@@ -295,8 +340,8 @@ A is the algorithm for computing destination-based
   <back>
   
     <references title="Informative References">
-      <?rfc include="http://xml.resource.org/public/rfc/bibxml3/reference.I-D.draft-ietf-spring-segment-routing-01.xml"?>
-      <?rfc include="http://xml.resource.org/public/rfc/bibxml3/reference.I-D.draft-ietf-isis-segment-routing-extensions-03.xml"?>
+      <?rfc include="http://xml.resource.org/public/rfc/bibxml3/reference.I-D.draft-ietf-spring-segment-routing-03.xml"?>
+      <?rfc include="http://xml.resource.org/public/rfc/bibxml3/reference.I-D.draft-ietf-isis-segment-routing-extensions-04.xml"?>
       <?rfc include="http://xml.resource.org/public/rfc/bibxml3/reference.I-D.draft-ietf-ospf-segment-routing-extensions-04.xml"?>
     </references>
   </back>
