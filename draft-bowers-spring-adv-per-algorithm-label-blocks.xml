@@ -65,7 +65,7 @@
     <workgroup>SPRING Working Group</workgroup>
 
     <abstract>
-      <t> Segment routing uses globally-known labels to accomplish
+      <t> Segment routing uses globally known labels to accomplish
       destination-based forwarding along shortest paths computed using
       Dijkstra's algorithm with IGP metrics.  This draft discusses how
       to use segment routing to accomplish destination-based
@@ -83,26 +83,25 @@
       <t> <xref target="I-D.ietf-spring-segment-routing"/> describes
       the segment routing architecture.  In segment routing, LDP-like
       forwarding behavior along shortest paths is achieved using
-      globally-known node labels.  Globally-known node labels can be
-      distributed in one of two ways.  Each router can directly
-      advertise a globally unique node label in the IGP.  Or each
-      router can advertise a globally unique node index value as well
+      globally known node labels.  Globally known node labels can be
+      distributed by having each
+      router advertise a globally unique node index value as well
       as a locally assigned label block, allowing any router in the
-      IGP area to determine the mapping of locally-assigned label to
+      IGP area to determine the mapping of locally assigned label to
       globally unique node index for any other router in the area.
       </t>
 
       <t> This draft focuses on the case where the combination of
       global node index and local label block is used to distribute
-      locally-significant labels.  <xref
+      locally significant labels.  <xref
       target="fig_spf_label_formula"/> shows the formula used to
-      determine the locally-significant label values corresponding to
+      determine the locally significant label values corresponding to
       shortest path forwarding next-hops computed using Dijkstra's
       shortest path first algorithm with IGP metrics, which is the
       default mode of operation for segment routing.
       </t>
       
-<figure anchor="fig_spf_label_formula" title="Formula for determining locally-significant shortest path labels" align="center">
+<figure anchor="fig_spf_label_formula" title="Formula for determining locally significant shortest path labels" align="center">
 <artwork align="center"><![CDATA[      
 SPF_Label(X,D) = Label_Block(X) + Node_Index(D) 
 
@@ -127,11 +126,11 @@ D is the destination node
 
       <t> <xref target="fig_generalized_label_formula"/> shows two
       options for generalizing the above formula, to determine
-      locally-significant labels corresponding to forwarding next-hops
+      locally significant labels corresponding to forwarding next-hops
       computed using other algorithms.
       </t>
 
-<figure anchor="fig_generalized_label_formula" title="Two options for determining locally-significant labels for other algorithms" align="center">
+<figure anchor="fig_generalized_label_formula" title="Two options for determining locally significant labels for other algorithms" align="center">
 <artwork align="center"><![CDATA[
 
     Option 1: per-algorithm node index
