@@ -79,56 +79,71 @@
     <workgroup>SPRING Working Group</workgroup>
 
     <abstract>
-      <t> Segment routing uses globally known labels to accomplish
-      destination-based forwarding along shortest paths computed using
-      Dijkstra's algorithm with IGP metrics.  Segment routing also
-      allows one to accomplish destination-based forwarding along
-      paths computed using other algorithms.  Segment routing also
-      supports multi-topology routing, and it supports the use of
-      other algorithms combined with multi-topology routing.  This
-      draft compares two different options for associating labels with
-      different algorithms and topologies, and it proposes IS-IS
-      extensions to encode the per-topology/per-algorithm label block
-      option.
-      </t>
+<t>When segment routing is used in a network that is controlled by a 
+link state IGP (such as ISIS or OSPF), each node in the network can be 
+assigned one or more index numbers, known as "node-SIDs". The node-SIDs 
+are unique within the network, and are known to all the nodes in the 
+network. If an ingress node has a data packet to be sent to an egress 
+node, the ingress node may select a node-SID corresponding to the egress 
+node, and "translate" that node-SID to an MPLS label. The MPLS label 
+represents a particular path to the egress node; the path is determined 
+by applying a routing algorithm to a particular view of the network 
+topology and a particular set of metric assignments to the links of that 
+topology. The packet can then be forwarded by pushing the label on the 
+packet's label stack and transmitting the packet to the next hop on the 
+corresponding path to the egress node. This document compares two 
+different procedures for translating a node-SID to the MPLS label that 
+represents a path chosen by a particular algorithm operating on a 
+particular topology. It also specifies the ISIS extensions needed to 
+support one of the procedures (known as the "per-topology/per-algorithm 
+label block" procedure).</t> 
+
+
     </abstract>
     
   </front>
 
   <middle>
     <section title="Introduction">
-      <t> <xref target="I-D.ietf-spring-segment-routing"/> describes
-      the segment routing architecture.  In segment routing, LDP-like
-      forwarding behavior along shortest paths is achieved using
-      globally known node labels.  Globally known node labels can be
-      distributed by having each
-      router advertise a globally unique node index value as well
-      as a locally assigned label block, allowing any router in the
-      IGP area to determine the mapping of locally assigned label to
-      globally unique node index for any other router in the area.
-      </t>
 
-      <t> <xref target="fig_spf_label_formula"/> shows the formula
-      used to determine the locally significant label values
-      corresponding to shortest path forwarding next-hops computed
-      using Dijkstra's shortest path first algorithm with IGP metrics,
-      which is the default mode of operation for segment routing.
-      </t>
-      
-<figure anchor="fig_spf_label_formula" title="Formula for determining locally significant shortest path labels" align="center">
+<t> <xref target="I-D.ietf-spring-segment-routing"/> describes the segment 
+routing architecture. When segment routing is used in a network that is 
+controlled by a link state IGP (such as ISIS or OSPF), each node in the 
+network can be assigned one or more index numbers, known as "node-SIDs". 
+The node-SIDs are unique within the network, and are known to all the 
+nodes in the network. If an ingress node has a data packet to be sent to 
+an egress node, the ingress node may select a node-SID corresponding to 
+the egress node, and "translate" that node-SID to an MPLS label. The 
+MPLS label represents a particular path to the egress node; the path is 
+determined by applying a routing algorithm to a particular view of the 
+network topology and a particular set of metric assignments to the links 
+of that topology. The packet can then be forwarded by pushing the label 
+on the packet's label stack and transmitting the packet to the next hop 
+on the corresponding path to the egress node.</t> 
+
+<t> When a particular network is using a single routing algorithm and a 
+single topology, the procedure for translating a node-SID to an MPLS 
+label is straightforward. <xref target="fig_spf_label_formula"/> shows 
+the formula used to translate a node-SID into an MPLS label when the 
+paths are selected by using the default routing algorithm (Dijkstra's 
+shortest path first algorithm) and the default topology.</t> 
+
+<figure anchor="fig_spf_label_formula" 
+title="Translating Node-SID to Label: The Default Case" 
+align="center">
 <artwork align="center"><![CDATA[      
 SPF_Label(X,D) = Label_Block(X) + Node_Index(D) 
 
-X is the node for which the label has local significance 
 D is the destination node 
+X is the next-hop along the path to D
 
 ]]></artwork>
 </figure>
 
       <t> As a simple example, when the computing node (Y) needs to
       forward a packet ultimately destined for node D, Y first
-      determines the shortest path next-hop node to reach D, which we
-      assume to be X in this example.  Y then adds the Node_Index
+      determines the shortest path next-hop node to reach D, which 
+      in this example is X.  Y then adds the Node_Index
       value advertised by D to the Label_Block value advertised by X
       to determine the label value to apply to the packet before
       sending it to X.
@@ -144,7 +159,9 @@ D is the destination node
       computed using other algorithms.
       </t>
 
-<figure anchor="fig_algo_label_formulas" title="Two options for determining locally significant labels for other algorithms" align="center">
+<figure anchor="fig_algo_label_formulas" 
+title="Translating Node-SID to Label: Algorithm-Specific Options"
+align="center">
 <artwork align="center"><![CDATA[
 
     Option 1a: per-algorithm node index
@@ -153,35 +170,37 @@ D is the destination node
     Option 2a: per-algorithm label block 
     Label(X,D,A) = Label_Block(X,A) + Node_Index(D)      
 
-X is the node for which the label has local significance 
-D is the destination node 
 A is the algorithm for computing destination-based 
   forwarding next-hops 
+D is the destination node 
+X is the next hop along the path to D that is
+  determined by algorithm A
 
+  
 ]]></artwork>
 </figure>
 
-      <t> The computing router (Y) needs to forward a packet destined
-      for node D using next-hops computed by algorithm A.  Using
+      <t> Suppose router Y needs to forward a packet to node D along a 
+      path computed by algorithm A.  Using
       either option, Y determines the next-hop computed by algorithm A
-      to reach D, which we assume to be X in this example.  Y then
+      to reach D, which in this example is X.  Y then
       needs to figure out the correct label to apply to the packet so
-      that X will also understand that the packet is destined for node
-      D using forwarding next-hops computed by algorithm A.  The two
+      that so that X will also understand that the packet is to be sent
+      to node D along a path computed by algorithm A.  The two
       options shown in <xref target="fig_algo_label_formulas"/>
       differ in how Y determines that label value.
       </t>
 
-      <t>In Option 1a each node advertises a unique node index for each
-      algorithm and a single label block.  Y determines the label
+      <t>In Option 1a each node advertises a single label block, but advertises a
+      different node index for each algorithm.  Y determines the label
       value of local significance to X to reach D using algorithm A by
       adding the Node_Index advertised by node D for algorithm A to
       the Label_Block advertised by node X.  We refer to this as the
       per-algorithm node index option.
       </t>
 
-      <t>In Option 2a each node advertises a single node index and a
-      unique label block for each algorithm.  Y determines the label
+      <t>In Option 2a each node advertises only a single node index, but advertises
+      a different label block for each algorithm.  Y determines the label
       value of local significance to X to reach D using algorithm A by
       adding the Node_Index advertised by node D to the Label_Block
       for algorithm A advertised by node X.  We refer to this as the
@@ -207,13 +226,15 @@ A is the algorithm for computing destination-based
       <t> The IGP extensions to support multi-topology routing are
       defined in <xref target="RFC4915"/> for OSPF and <xref
       target="RFC5120"/> for IS-IS.  <xref
-      target="fig_topo_algo_label_formulas"/> further genearlizes the
+      target="fig_topo_algo_label_formulas"/> further generalizes the
       formulas above to take into account multiple topologies.  It
       shows two options for determining locally significant labels for
       different topologies and algorithms.
       </t>
 
-<figure anchor="fig_topo_algo_label_formulas" title="Two options for determining locally significant labels for different topologies and algorithms" align="center">
+<figure anchor="fig_topo_algo_label_formulas" 
+title="Translating Node-SID to Label: Topology and Algorithm-Specific Options" 
+align="center">
 <artwork align="center"><![CDATA[
 
     Option 1: per-topology / per-algorithm node index
@@ -222,36 +243,38 @@ A is the algorithm for computing destination-based
     Option 2: per-topology / per-algorithm label block 
     Label(X,D,T,A) = Label_Block(X,T,A) + Node_Index(D)      
 
-X is the node for which the label has local significance 
-D is the destination node 
 T is the topology 
 A is the algorithm for computing destination-based 
   forwarding next-hops 
+D is the destination node 
+X is the next hop along the path to D that is
+  determined by algorithm A for topology T
+
 
 ]]></artwork>
 </figure>
 
-      <t>In Option 1 each node advertises a single label block along
-      with a unique node index for each combination of topology and
-      algorithm used.  Y determines the label value of local
-      significance to X to reach D using topology T and algorithm A by
-      adding the Node_Index advertised by node D for topology T and
+      <t>In Option 1 each node advertises a single label block, but advertises a
+      different node index for each combination of topology and
+      algorithm used.  In order for Y to determine the label value that tells X to
+      reach D via the path chosen by algorithm A for topology T, 
+	  Y adds the Node_Index advertised by node D for topology T and
       algorithm A to the Label_Block advertised by node X.  We refer
       to this as the per-topology/per-algorithm node index option.
       </t>
 
       <t>In Option 2 each node advertises a single node index and a
       unique label block along for each combination of topology and
-      algorithm used.  Y determines the label value of local
-      significance to X to reach D using topology T and algorithm A by
-      adding the Node_Index advertised by node D to the Label_Block
-      advertised by node X for topology R and algorithm A.  We refer
+      algorithm used.  In order for Y to determine the label value that tells X to
+      reach D via the path chosen by algorithm A for topology T, 
+	  Y adds the Node_Index advertised by node D to the Label_Block
+      advertised by node X for topology T and algorithm A.  We refer
       to this as the per-topology/per-algorithm label block option.
       </t>
 
-      <t> Note that both formulas in <xref
-      target="fig_topo_algo_label_formulas"/> do not require the use
-      of both non-default topologies and different algorithms. For
+      <t> Note that the formulas in  <xref
+      target="fig_topo_algo_label_formulas"/> can of course be applied
+      even if there is only one algorithm and/or only one topology. For
       example, if the use case uses multiple topologies but only uses
       the default shortest path algorithm (algorithm=0), then option 2
       can be written as: Label(X,D,T,0) = Label_Block(X,T,0) +
@@ -263,7 +286,7 @@ A is the algorithm for computing destination-based
 
     </section>
 
-    <section title="A simple example">
+    <section title="Example: Adding Nodes when Multiple Algorithms are In Use">
       <t> The following example illustrates the practical difficulties
       associated with using the per-topology/per-algorithm node index
       option (option 1) alone.  This example is intentionally
@@ -345,13 +368,17 @@ A is the algorithm for computing destination-based
 
     </section>
 
-    <section anchor="sec_proposed_method" title="Proposed configured offset mapping method">
-      <t> The method described in this section represents the authors
-      understanding of this proposal as discussed on the SPRING
-      mailing list.  
-      </t>
+<section anchor="sec_proposed_method" 
+title="Proposed configured offset mapping method for assigning per-topology/per-algorithm node-SIDs when using Option 1">
+ <t> If a network operator uses option 1, which requires the assignment 
+of unique per-topology/per-algorithm node-SIDs, then it is clear that a 
+common convention or methodology would be useful to help assign and 
+maintain those unique node-SIDs. The methodology described in this 
+section represents the authors' understanding of a proposal to manage 
+assignment of node-SIDs when using option 1, as discussed on the SPRING 
+mailing list. </t> 
 
-      <t> One method for managing the assignment of unique node index
+      <t> The proposed method for managing the assignment of unique node index
       values for each topology/algorithm pair involves configuring a
       mapping from each topology/algorithm pair to an offset value.
       This offset mapping would need to be configured identically on
@@ -365,7 +392,8 @@ A is the algorithm for computing destination-based
       FIB.
       </t>
 
-<figure anchor="fig_configured_offset_mapping_method" title="Configured offset mapping method to manage assignment of unique per-topology/per-algorithm node index values ">
+<figure anchor="fig_configured_offset_mapping_method" 
+title="Proposed configured offset mapping method to manage assignment of unique per-topology/per-algorithm node index values when using Option 1 ">
 <artwork align="center"><![CDATA[
 
   Node_Index(Y,T,A) = Configured_Offset(T,A) + Base_Node_Index(Y) 
@@ -394,7 +422,7 @@ A is the algorithm
       <t> <xref target="fig_example_5_topo_N_algo_option_1"/> shows
       the configuration data required on each of the 500 routers using
       option 1 together with the configured offset mapping method to manage
-      node index assigment. 
+      node index assignment. 
       </t>
 
 <figure anchor="fig_example_5_topo_N_algo_option_1" title="Required configuration data using option 1 " align="center">
@@ -430,7 +458,8 @@ topology=7 algorithm=2 offset=5000
       topology shortest path forwarding (topology=0, algorithm=0).
       </t>
 
-<figure anchor="fig_example_5_topo_N_algo_option_2" title="Required configuration data using option 2 " align="center">
+<figure anchor="fig_example_5_topo_N_algo_option_2" title="Required 
+configuration data using option 2 " align="center">
 <artwork align="center"><![CDATA[
 node_index=123
 label_block_size=1000
@@ -439,7 +468,7 @@ label_block_size=1000
 
     </section>
 
-    <section title="Flexibilty to create easy-to-interpret label values">
+    <section title="Flexibility to create easy-to-interpret label values">
       <t> For some applications, it may be desirable to arrange things
       so that the meaning of label values used for forwarding can be
       readily understood by people trouble-shooting the network.  When
@@ -455,7 +484,7 @@ label_block_size=1000
       be meaningful to a people.  They will be 20123, 21123, 22123,
       23123, 24123, and 25123 for the corresponding topology/algorithm
       pairs, so an operator who remembers the mapping between
-      topology/alogorithm pair and offset can tell that 25123 is the
+      topology/algorithm pair and offset can tell that 25123 is the
       label corresponding to topology=7, algorithm=2, node=123.
       </t>
 
@@ -492,7 +521,7 @@ topology=7 algorithm=2 label_block_base=172000
       algorithm=2, node=123.
       </t>
 
-      <t> In the above example, we have illustrated the flexiblity of
+      <t> In the above example, we have illustrated the flexibility of
       option 2 to create more readable labels in a hypothetical
       network with no constraints on label space.  However, it is
       likely that in a multi-vendor network with multiple generations
@@ -508,7 +537,11 @@ topology=7 algorithm=2 label_block_base=172000
     </section>
     
     <section title="Robustness against misconfiguration">
-      <t> In the simple case where the application does not require
+      <t> Option 2 is much more robust against misconfiguration than is option
+      1.  This is true both in scenarios that require easy-to-interpret label
+      values and in scenarios that do not.  </t>
+
+      <t>In the simple case where the application does not require
       easy-to-interpret label values, option 2 has clear advantages
       over option 1 in terms of robustness again misconfiguration.
       Option 1 requires identical offset mapping configurations on all
@@ -516,7 +549,7 @@ topology=7 algorithm=2 label_block_base=172000
       configuration, so there is nothing to misconfigure.
       </t>
 
-      <t> In scenarios requiring easy-to-interpet label values, where
+      <t> In scenarios requiring easy-to-interpret label values, where
       option 2 requires a label_block_base mapping configuration,
       option 2 is still more robust against misconfiguration than
       option 1.  Misconfiguration of the label_block_base mapping in
@@ -591,6 +624,11 @@ topology=7 algorithm=2 label_block_base=172000
       values in TLV-235 and TLV-237.</t>
 
     </section>
+	
+<section anchor="sec_ospf_ext" title="OSPF extensions to encode per-topology/per-algorithm label blocks">
+      <t> OSPF extensions to encode per-topology/per-algorithm label blocks will
+	  be provided in a future version of this draft.</t>
+</section>
 
     <section anchor="IANA" title="IANA Considerations">
       <t>   This document requests the following registration in the "sub-TLVs for
@@ -605,11 +643,11 @@ topology=7 algorithm=2 label_block_base=172000
     
     <section title="Management Considerations">
       <t>This document proposes the use of per-topology/per-algorithm
-      label blocks to support destination-based forwarding along
+      label blocks (option 2) to support destination-based forwarding along
       next-hops computed using different algorithms for different
       topologies.  The automated advertisement of
-      per-topology/per-algorithm label blocks significantly simplifes
-      network managment compared to configuration and maintenance of
+      per-topology/per-algorithm label blocks significantly simplifies
+      network management compared to configuration and maintenance of
       unique per-topology/per-algorithm node indexes.
       </t>
     </section>
@@ -620,8 +658,8 @@ topology=7 algorithm=2 label_block_base=172000
     </section>
 
     <section anchor="Acknowledgements" title="Acknowledgements" toc="default">
-      <t> The authors thank John Scudder for his review of this
-      document and his suggestions.
+      <t> The authors thank John Scudder and Eric Rosen for their helpful review
+	  of this document and suggestions.
       </t>
     </section>
 
