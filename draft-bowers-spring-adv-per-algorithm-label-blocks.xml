@@ -72,7 +72,7 @@
       </address>
     </author>
     
-    <date day="31" month="July" year="2015"/>
+    <date day="29" month="September" year="2015"/>
     
     <area>Routing</area>
 
@@ -289,7 +289,8 @@ X is the next hop along the path to D that is
     <section title="Example: Adding Nodes when Multiple Algorithms are In Use">
       <t> The following example illustrates the practical difficulties
       associated with using the per-topology/per-algorithm node index
-      option (option 1) alone.  This example is intentionally
+      option alone (option 1 in <xref
+      target="fig_topo_algo_label_formulas"/> ).  This example is intentionally
       simplified to illustrate the need for some kind of convention to
       manage the assignment of the unique node index values required
       by option 1, even in a simple scenario.  The sections below
@@ -528,8 +529,8 @@ topology=7 algorithm=2 label_block_base=172000
       of hardware supporting different MPLS applications there will
       exist constraints regarding the location and size of contiguous
       label blocks for use by SPRING.  This would impose constraints
-      one's ability to construct readable label values using option 1
-      with the configurable offset mapping method.  Option 2 provides
+      on one's ability to construct readable label values using option 1
+      with the configured offset mapping.  Option 2 provides
       more flexibility to construct easy-to-interpret label values in
       such a network.
       </t>
@@ -619,10 +620,9 @@ topology=7 algorithm=2 label_block_base=172000
       algorithm=0 or any other value) SHOULD NOT be advertised in
       TLV-235(MT-IPv4) and TLV-237(MT-IPv6).  If a node originates the
       Topology-Algorithm-Label-Block sub-TLV (meaning that it supports
-      option 2), then it MUST ignore the reciept of node indices for
+      option 2), then it MUST ignore the receipt of node indices for
       non-zero algorithms in TLV-135 and TLV-236 and any node index
       values in TLV-235 and TLV-237.</t>
-
     </section>
 	
 <section anchor="sec_ospf_ext" title="OSPF extensions to encode per-topology/per-algorithm label blocks">
@@ -648,7 +648,7 @@ topology=7 algorithm=2 label_block_base=172000
       topologies.  The automated advertisement of
       per-topology/per-algorithm label blocks significantly simplifies
       network management compared to configuration and maintenance of
-      unique per-topology/per-algorithm node indexes.
+      unique per-topology/per-algorithm node indices.
       </t>
     </section>
 
