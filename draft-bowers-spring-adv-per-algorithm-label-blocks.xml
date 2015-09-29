@@ -286,7 +286,8 @@ X is the next hop along the path to D that is
 
     </section>
 
-    <section title="Example: Adding Nodes when Multiple Algorithms are In Use">
+    <section anchor="sec_simple_example" 
+	title="Example: Adding Nodes when Multiple Algorithms are In Use">
       <t> The following example illustrates the practical difficulties
       associated with using the per-topology/per-algorithm node index
       option alone (option 1 in <xref
@@ -310,7 +311,10 @@ X is the next hop along the path to D that is
 
       <t> Assume that at some future point in time, the IETF defines
       algorithm=2 to mean shortest path routing based on latency, and
-      vendors implement this.  Suppose that the operator wants to use
+      vendors implement this. 
+	  (See section <xref target="sec_algorithms_and_topologies"/> 
+	  for more discussion of this example.) 
+	  Suppose that the operator wants to use
       latency-based SPF routes for some traffic and metric-based SPF
       routes for other traffic.  The operator will need to define a
       new set of unique node index values for algorithm=2.  A
@@ -630,6 +634,24 @@ topology=7 algorithm=2 label_block_base=172000
 	  be provided in a future version of this draft.</t>
 </section>
 
+<section anchor="sec_algorithms_and_topologies" title="A note on algorithms and topologies">
+ <t> The example given in <xref target="sec_simple_example"/> supposes 
+that at some point in the future the IETF defines algorithm=2 to mean 
+shortest path routing based on latency. This simple example was 
+chosen since it is easy to understand. However, the same result could also have 
+been achieved by defining a second topology which uses latency as the 
+metric for that topology, and running the default SPF algorithm on that 
+second topology.</t> 
+
+<t>In general, when using other algorithms for computing next-hops for 
+destination-based forwarding, it is not possible to achieve the same 
+results by simply defining a new topology with modified metrics and 
+running the default SPF algorithm.  An example of such an algorithm is 
+that used to compute Maximally Redundant Trees (MRTs), as defined in <xref 
+target="I-D.ietf-rtgwg-mrt-frr-algorithm"/>. </t> 
+
+</section>
+
     <section anchor="IANA" title="IANA Considerations">
       <t>   This document requests the following registration in the "sub-TLVs for
    TLV 242" registry.
@@ -675,6 +697,7 @@ topology=7 algorithm=2 label_block_base=172000
       <?rfc include="http://xml.resource.org/public/rfc/bibxml3/reference.I-D.draft-ietf-spring-segment-routing-04.xml"?>
       <?rfc include="http://xml.resource.org/public/rfc/bibxml3/reference.I-D.draft-ietf-isis-segment-routing-extensions-05.xml"?>
       <?rfc include="http://xml.resource.org/public/rfc/bibxml3/reference.I-D.draft-ietf-ospf-segment-routing-extensions-05.xml"?>
+	  <?rfc include="http://xml.resource.org/public/rfc/bibxml3/reference.I-D.draft-ietf-rtgwg-mrt-frr-algorithm-05.xml"?>
     </references>
   </back>
 </rfc>
